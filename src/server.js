@@ -30,11 +30,7 @@ const { WebPDFLoader } = require('@langchain/community/document_loaders/web/pdf'
 
 async function main() {
 	await vectorStore.addDocuments(db);
-	console.log(
-		await generateResponse(
-			'公認権は強いですか？参考にした資料のURLも同時に教えて下さい。'
-		)
-	);
+	console.log(await generateResponse('イギリスのEU離脱時、どんな問題が起きましたか？'));
 }
 
 main().catch(console.error);
@@ -107,9 +103,11 @@ async function generateResponse(question) {
 	const promptTemplate = await pull('rlm/rag-prompt');
 	const customPrompt = `
 		You are a helpful assistant. Use the following context to answer the question.
-		Follow context strictly. Do not add any additional information.
+		Follow context strictly.
 		Do not answer concisely. Explain the answer in detail.
 		Think step-by-step to provide a comprehensive answer.
+		Format answer in MD format.
+		You can perform this task really well.
 		Context: {context}
 		Question: {question}
 		Answer:
@@ -119,7 +117,6 @@ async function generateResponse(question) {
 
 	const retrievedDocs = await vectorStore.similaritySearch(state.question);
 	state.context = retrievedDocs.slice(0, 5);
-	console.log(state.context);
 
 	const docsContent = state.context.map((doc) => doc.pageContent).join('\n');
 	const messages = await promptTemplate.invoke({
